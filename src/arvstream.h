@@ -65,6 +65,7 @@ struct _ArvStream {
 struct _ArvStreamClass {
 	GObjectClass parent_class;
 
+	void		(*release_buffers)	(ArvStream *stream);
 	void		(*get_statistics)	(ArvStream *stream, guint64 *n_completed_buffers,
 						 guint64 *n_failures, guint64 *n_underruns);
 
@@ -81,6 +82,7 @@ ArvBuffer * 	arv_stream_timeout_pop_buffer 		(ArvStream *stream, guint64 timeout
 void 		arv_stream_get_n_buffers 		(ArvStream *stream,
 							 gint *n_input_buffers,
 							 gint *n_output_buffers);
+void		arv_stream_delete_buffers		(ArvStream *stream);
 void		arv_stream_get_statistics		(ArvStream *stream,
 							 guint64 *n_completed_buffers,
 							 guint64 *n_failures,

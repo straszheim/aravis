@@ -216,6 +216,44 @@ arv_stream_get_n_buffers (ArvStream *stream, gint *n_input_buffers, gint *n_outp
 }
 
 /**
+ * arv_stream_delete_buffers:
+ * @stream: a #ArvStream
+ *
+ * Free all buffers in input and output queues.
+ *
+ * Since: 0.3.8
+ */
+
+void
+arv_stream_delete_buffers (ArvStream *stream)
+{
+	ArvStreamClass *stream_class;
+	unsigned n_deleted = 0;
+
+	g_return_if_fail (ARV_IS_STREAM (stream));
+
+	g_async_queue_lock (stream->priv->input_queue);
+	while (g_async_queue_length_unlocked (stream->priv->input_queue) > 0) {
+		g_object_unref (g_async_queue_pop_unlocked (stream->priv->input_queue));
+		n_deleted++;
+	}
+	g_async_queue_unlock (stream->priv->input_queue);
+
+	stream_class = ARV_STREAM_GET_CLASS (stream);
+	if (stream_class->release_buffers)
+		stream_class->release_buffers (stream);
+
+	g_async_queue_lock (stream->priv->output_queue);
+	while (g_async_queue_length_unlocked (stream->priv->output_queue) > 0) {
+		g_object_unref (g_async_queue_pop_unlocked (stream->priv->output_queue));
+		n_deleted++;
+	}
+	g_async_queue_unlock (stream->priv->output_queue);
+
+	arv_debug_stream ("[Stream::delete_buffers] Number of deleted buffers = %d", n_deleted);
+}
+
+/**
  * arv_stream_get_statistics:
  * @stream: a #ArvStream
  * @n_completed_buffers: (out) (allow-none): number of complete received buffers
