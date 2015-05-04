@@ -12,6 +12,7 @@ arv-camera-test
 arv-chunk-parser-test
 arv-heartbeat-test
 arv-example
+arv-roi-test
 time-test
 realtime-test
 load-http-test
