@@ -619,85 +619,90 @@ arv_gv_stream_thread (void *data)
 		else
 			timeout_ms = ARV_GV_STREAM_POLL_TIMEOUT_US / 1000;
 
+		poll_fd[0].revents = 0;
+		poll_fd[1].revents = 0;
+
 		n_events = g_poll (poll_fd, 2, timeout_ms);
 
 		g_get_current_time (&current_time);
 		time_us = current_time.tv_sec * 1000000 + current_time.tv_usec;
 
+		frame = NULL;
+
 		if (n_events > 0) {
-			read_count = g_socket_receive_with_blocking (thread_data->socket, (char *) packet,
-								     ARV_GV_STREAM_INCOMING_BUFFER_SIZE, FALSE, NULL, NULL);
+			if (poll_fd[0].revents != 0) {
+				read_count = g_socket_receive_with_blocking (thread_data->socket, (char *) packet,
+									     ARV_GV_STREAM_INCOMING_BUFFER_SIZE, FALSE, NULL, NULL);
 
-			if (read_count > 0) {
-				thread_data->n_received_packets++;
+				if (read_count > 0) {
+					thread_data->n_received_packets++;
 
-				frame_id = arv_gvsp_packet_get_frame_id (packet);
-				packet_id = arv_gvsp_packet_get_packet_id (packet);
+					frame_id = arv_gvsp_packet_get_frame_id (packet);
+					packet_id = arv_gvsp_packet_get_packet_id (packet);
 
-				if (first_packet) {
-					thread_data->last_frame_id = frame_id - 1;
-					first_packet = FALSE;
-				}
-
-				frame = _find_frame_data (thread_data, frame_id, packet, packet_id, read_count, time_us);
-
-				if (frame != NULL) {
-					ArvGvspPacketType packet_type = arv_gvsp_packet_get_packet_type (packet);
-
-					if (packet_type != ARV_GVSP_PACKET_TYPE_OK &&
-					    packet_type != ARV_GVSP_PACKET_TYPE_RESEND) {
-						arv_debug_stream_thread ("[GvStream::stream_thread]"
-									 " Error packet at dt = %" G_GINT64_FORMAT ", packet id = %u"
-									 " frame id = %u",
-									 time_us - frame->first_packet_time_us,
-									 packet_id, frame->frame_id);
-						arv_gvsp_packet_debug (packet, read_count, ARV_DEBUG_LEVEL_DEBUG);
-						frame->error_packet_received = TRUE;
-
-						thread_data->n_error_packets++;
-					} else {
-						/* Check for duplicated packets */
-						if (packet_id < frame->n_packets) {
-							if (frame->packet_data[packet_id].received)
-								thread_data->n_duplicated_packets++;
-							else
-								frame->packet_data[packet_id].received = TRUE;
-						}
-
-						/* Keep track of last packet of a continuous block starting from packet 0 */
-						for (i = frame->last_valid_packet + 1; i < frame->n_packets; i++)
-							if (!frame->packet_data[i].received)
-								break;
-						frame->last_valid_packet = i - 1;
-
-						switch (arv_gvsp_packet_get_content_type (packet)) {
-							case ARV_GVSP_CONTENT_TYPE_DATA_LEADER:
-								_process_data_leader (thread_data, frame, packet, packet_id);
-								break;
-							case ARV_GVSP_CONTENT_TYPE_DATA_BLOCK:
-								_process_data_block (thread_data, frame, packet, packet_id,
-										     read_count);
-								break;
-							case ARV_GVSP_CONTENT_TYPE_DATA_TRAILER:
-								_process_data_trailer (thread_data, frame, packet, packet_id);
-								break;
-							default:
-								thread_data->n_ignored_packets++;
-								break;
-						}
-
-						_missing_packet_check (thread_data, frame, packet_id, time_us);
+					if (first_packet) {
+						thread_data->last_frame_id = frame_id - 1;
+						first_packet = FALSE;
 					}
-				} else
-					thread_data->n_ignored_packets++;
-			} else
-				frame = NULL;
-			
-			if (read_count < 1 || n_events > 1) {
-				arv_wakeup_acknowledge (thread_data->cancel);
+
+					frame = _find_frame_data (thread_data, frame_id, packet, packet_id, read_count, time_us);
+
+					if (frame != NULL) {
+						ArvGvspPacketType packet_type = arv_gvsp_packet_get_packet_type (packet);
+
+						if (packet_type != ARV_GVSP_PACKET_TYPE_OK &&
+						    packet_type != ARV_GVSP_PACKET_TYPE_RESEND) {
+							arv_debug_stream_thread ("[GvStream::stream_thread]"
+										 " Error packet at dt = %" G_GINT64_FORMAT
+										 ", packet id = %u"
+										 " frame id = %u",
+										 time_us - frame->first_packet_time_us,
+										 packet_id, frame->frame_id);
+							arv_gvsp_packet_debug (packet, read_count, ARV_DEBUG_LEVEL_DEBUG);
+							frame->error_packet_received = TRUE;
+
+							thread_data->n_error_packets++;
+						} else {
+							/* Check for duplicated packets */
+							if (packet_id < frame->n_packets) {
+								if (frame->packet_data[packet_id].received)
+									thread_data->n_duplicated_packets++;
+								else
+									frame->packet_data[packet_id].received = TRUE;
+							}
+
+							/* Keep track of last packet of a continuous block starting from packet 0 */
+							for (i = frame->last_valid_packet + 1; i < frame->n_packets; i++)
+								if (!frame->packet_data[i].received)
+									break;
+							frame->last_valid_packet = i - 1;
+
+							switch (arv_gvsp_packet_get_content_type (packet)) {
+								case ARV_GVSP_CONTENT_TYPE_DATA_LEADER:
+									_process_data_leader (thread_data, frame, packet, packet_id);
+									break;
+								case ARV_GVSP_CONTENT_TYPE_DATA_BLOCK:
+									_process_data_block (thread_data, frame, packet, packet_id,
+											     read_count);
+									break;
+								case ARV_GVSP_CONTENT_TYPE_DATA_TRAILER:
+									_process_data_trailer (thread_data, frame, packet, packet_id);
+									break;
+								default:
+									thread_data->n_ignored_packets++;
+									break;
+							}
+
+							_missing_packet_check (thread_data, frame, packet_id, time_us);
+						}
+					} else
+						thread_data->n_ignored_packets++;
+				}
 			}
-		} else
-			frame = NULL;
+
+			if (poll_fd[1].revents != 0)
+				arv_wakeup_acknowledge (thread_data->cancel);
+		}
 
 		_check_frame_completion (thread_data, time_us, frame);
 
