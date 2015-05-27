@@ -132,10 +132,16 @@ arv_fake_gv_camera_thread (void *user_data)
 				image_buffer = arv_buffer_new (payload, NULL);
 			}
 
+			image_buffer->priv->frame_id++;
+			if (image_buffer->priv->frame_id == 0)
+				image_buffer->priv->frame_id = 1;
+
 			arv_fake_camera_wait_for_next_frame (gv_camera->camera);
 			arv_fake_camera_fill_buffer (gv_camera->camera, image_buffer, &gv_packet_size);
 
 			block_id = 0;
+
+			arv_debug_stream_thread ("[FakeGvCamera::stream_thread] Send frame id=%d", image_buffer->priv->frame_id);
 
 			packet_size = ARV_FAKE_GV_CAMERA_BUFFER_SIZE;
 			arv_gvsp_packet_new_data_leader (image_buffer->priv->frame_id,
