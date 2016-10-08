@@ -1,3 +1,9 @@
+aravis (0.5.6pre-1) UNRELEASED; urgency=medium
+
+  * second release, getting my thingy on here
+
+ -- troy <troy@iron>  Sat, 08 Oct 2016 16:38:42 -0700
+
 aravis (0.5.4-1) unstable; urgency=medium
 
   * Initial release (Closes: #nnnn)  <nnnn is the bug number of your ITP>

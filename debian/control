@@ -1,6 +1,6 @@
 Source: aravis
 Priority: optional
-Maintainer: troy <troy@unknown>
+Maintainer: Troy D. Straszheim <troy@resophonic.com>
 Build-Depends: debhelper (>=9), dh-autoreconf, intltool, autoconf, gobject-introspection, gtk-doc-tools, libgstreamer1.0-dev, libxml2-dev,
 # python-gst-1.0, python-gobject-dev
 Standards-Version: 3.9.6
@@ -13,11 +13,11 @@ Package: libaravis-dev
 Section: libdevel
 Architecture: any
 Depends: aravisBROKEN (= ${binary:Version}), ${misc:Depends}
-Description: <insert up to 60 chars description>
+Description: genicam image acquisition lib with glib dev
  <insert long description, indented with spaces>
 
 Package: libaravis
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: <insert up to 60 chars description>
+Description: genicam image acquisition lib with glib
  <insert long description, indented with spaces>
