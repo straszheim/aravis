@@ -1,11 +1,11 @@
-Source: libaravis
+Source: aravis
 Priority: optional
 Maintainer: troy <troy@unknown>
-Build-Depends: debhelper (>=9) dh-autoreconf
+Build-Depends: debhelper (>=9), dh-autoreconf, intltool
 Standards-Version: 3.9.6
 Section: libs
 Homepage: <insert the upstream URL, if relevant>
-#Vcs-Git: git://anonscm.debian.org/collab-maint/aravis.git
+Vcs-Git: https://github.com/AravisProject/aravis.git
 #Vcs-Browser: https://anonscm.debian.org/cgit/collab-maint/aravis.git
 
 Package: libaravis-dev
