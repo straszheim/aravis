@@ -1,7 +1,7 @@
 Source: libaravis
 Priority: optional
 Maintainer: troy <troy@unknown>
-Build-Depends: debhelper (>=9)
+Build-Depends: debhelper (>=9) dh-autoreconf
 Standards-Version: 3.9.6
 Section: libs
 Homepage: <insert the upstream URL, if relevant>
