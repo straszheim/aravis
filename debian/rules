@@ -21,4 +21,4 @@ export DH_OPTIONS = -v
 # dh_make generated override targets
 override_dh_auto_configure:
 	NOCONFIGURE=1 ./autogen.sh
-	dh_auto_configure -- #	-DCMAKE_LIBRARY_PATH=$(DEB_HOST_MULTIARCH)
+	dh_auto_configure -- --prefix=/opt/move
