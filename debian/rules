@@ -13,16 +13,24 @@ export DH_OPTIONS = -v
 # package maintainers to append LDFLAGS
 #export DEB_LDFLAGS_MAINT_APPEND = -Wl,--as-needed
 
-
 %:
 	dh $@
 
-
 # dh_make generated override targets
 override_dh_auto_configure:
-	./autogen.sh --prefix=/opt/move
+	NOCONFIGURE=1 ./autogen.sh
+	./configure --prefix=/opt/move --includedir=/opt/move/include/aravis
 
+override_dh_auto_build:
+	make -j5
 
+override_dh_install:
+	dh_install
+	# cp $(shell find tests -executable -maxdepth 1 -type f) debian/libaravis-dev/opt/move/bin
+
+tdsclean:
+	rm -f ~/proj/libaravis*.deb
+	rm -f ~/proj/aravis_0.5.6pre*
 
 tdstarball: tdsclean
 	cd ~/proj/aravis
@@ -31,9 +39,8 @@ tdstarball: tdsclean
 		--exclude=.git --exclude=.backup --exclude=.gitignore \
 		.
 
-tdsclean:
-	rm -f ~/proj/libaravis*.deb
-	rm -f ~/proj/aravis_0.5.6pre*
+tdsbuild: tdstarball
+	debuild --no-lintian -us -uc
 
-tdsall: tdstarball
-	debuild
+tdsshow: tdsbuild
+	dpkg --contents ../libaravis-dev_0.5.6pre-1_amd64.deb

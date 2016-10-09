@@ -11,12 +11,6 @@ Vcs-Git: https://github.com/AravisProject/aravis.git
 Package: libaravis-dev
 Section: libdevel
 Architecture: any
-Depends: libaravis (= ${binary:Version}), ${misc:Depends}
-Description: genicam image acquisition lib with glib dev
- <insert long description, indented with spaces>
-
-Package: libaravis
-Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: genicam image acquisition lib with glib
  <insert long description, indented with spaces>
