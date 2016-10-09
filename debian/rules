@@ -22,3 +22,6 @@ export DH_OPTIONS = -v
 override_dh_auto_configure:
 	NOCONFIGURE=1 ./autogen.sh
 	dh_auto_configure -- --prefix=/opt/move
+
+override_dh_install:
+	dh_install --autodest
