@@ -20,8 +20,20 @@ export DH_OPTIONS = -v
 
 # dh_make generated override targets
 override_dh_auto_configure:
-	NOCONFIGURE=1 ./autogen.sh
-	dh_auto_configure -- --prefix=/opt/move
+	./autogen.sh --prefix=/opt/move
 
-override_dh_install:
-	dh_install --autodest
+
+
+tdstarball: tdsclean
+	cd ~/proj/aravis
+	git clean -df
+	tar cvzf ../aravis_0.5.6pre.orig.tar.gz \
+		--exclude=.git --exclude=.backup --exclude=.gitignore \
+		.
+
+tdsclean:
+	rm -f ~/proj/libaravis*.deb
+	rm -f ~/proj/aravis_0.5.6pre*
+
+tdsall: tdstarball
+	debuild
